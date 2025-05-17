@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     #apps
     'tasks',
     'users',
+    'advanced_func',
 ]
 
 MIDDLEWARE = [
