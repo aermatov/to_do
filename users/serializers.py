@@ -15,10 +15,16 @@ class RegisterUserSerializer(serializers.Serializer):
             raise serializers.ValidationError("Этот емейл уже занят!!!")
         password1 = attrs.pop("password1")
         password2 = attrs.pop("password2")
-        if password1 == password2:
-            attrs["password"] = password1
-        else:
-            raise serializers.ValidationError("Пароли не совпадают!!!")
+        if not password1 or not password2:
+            raise serializers.ValidationError("Оба поля пароля обязательны.")
+        if password1 != password2:
+            raise serializers.ValidationError("Пароли не совпадают!")
+        if len(password1) < 8:
+            raise serializers.ValidationError("Пароль должен быть не менее 8 символов.")
+        if password1.islower():
+            raise serializers.ValidationError("Первый символ должен быть в верхнем регистре!")
+        if not any(char in "!@#$%^&*?~" for char in password1):
+            raise serializers.ValidationError("Пароль должен содержать хотя бы один специальный символ (!@#$%^&*?~).")
         return attrs
 
 
