@@ -1,0 +1,21 @@
+{% extends 'tasks/base.html' %}
+
+{% block content %}
+<section>
+    <header class="major">
+        <h2>Список задач</h2>
+    </header>
+    {% if tasks %}
+        <ul class="task-list">
+            {% for task in tasks %}
+                <li>
+                    <strong>{{ task.title }}</strong><br>
+                    {{ task.description }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Нет доступных задач.</p>
+    {% endif %}
+</section>
+{% endblock %}
