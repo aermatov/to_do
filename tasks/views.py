@@ -1,9 +1,55 @@
+from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
+from django.shortcuts import redirect
+from django.core.serializers import serialize
 from django.shortcuts import render
 
-from tasks.models import Task
+from .models import Task
+from .serializers import TaskSerializer
 
 
-def get_index(request):
-    gigi = "Nazgul"
-    tasks = Task.objects.all()
-    return render(request, "index.html", locals())
+class TaskListCreateView(generics.ListCreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    # permission_classes = [IsAuthenticatedOrReadOnly]
+    renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
+    template_name = "pages/index.html"
+
+    def get(self, request, *args, **kwargs):
+        tasks = Task.objects.filter(user=request.user)
+        serializer = self.get_serializer()
+        return Response({'tasks': tasks, 'form': serializer})
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return redirect('task-list-create')
+        tasks = Task.objects.filter(user=request.user)
+        return Response({'tasks': tasks, 'form': serializer})
+
+
+class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    # permission_classes = [IsAuthenticatedOrReadOnly]
+    renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
+    template_name = "pages/task_detail.html"
+
+    def get(self, request, *args, **kwargs):
+        task = self.get_object()
+        serializer = self.get_serializer(task)
+        return Response({'task': task, 'form': serializer})
+
+    def post(self, request, *args, **kwargs):
+        task = self.get_object()
+        if "delete" in request.POST:
+            task.delete()
+            return redirect("task-list-create")
+        serializer = self.get_serializer(task, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return redirect("task-list-create")
+        return Response({'task': task, 'form': serializer})

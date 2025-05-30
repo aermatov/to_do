@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_simplejwt',
 
     #apps
     'tasks',
@@ -45,6 +47,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 AUTH_USER_MODEL = "users.CustomUser"
+LOGIN_REDIRECT_URL = 'index'
+LOGOUT_REDIRECT_URL = 'login'
 
 TEMPLATES = [
     {
@@ -62,6 +66,13 @@ TEMPLATES = [
         },
     },
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+
+}
 
 WSGI_APPLICATION = 'config.wsgi.application'
 

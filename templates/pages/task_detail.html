@@ -1,0 +1,38 @@
+{% extends "tasks/base.html" %}
+{% load static %}
+
+{% block content %}
+<section>
+    <header class="major">
+        <h2>Редактировать задачу</h2>
+    </header>
+
+    <form method="post" class="alt">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <ul class="actions">
+            <li><button type="submit" class="button big">Сохранить</button></li>
+        </ul>
+    </form>
+
+    <form method="post" style="margin-top: 1.5em;">
+        {% csrf_token %}
+        <input type="hidden" name="_method" value="delete">
+        <ul class="actions">
+            <li><button type="submit" class="button big red">Удалить задачу</button></li>
+        </ul>
+    </form>
+
+    {% if errors %}
+    <ul style="color: red;">
+        {% for field, error_list in errors.items %}
+            {% for error in error_list %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <p><a href="{% url 'task-list-create' %}">← Назад к списку</a></p>
+</section>
+{% endblock %}
