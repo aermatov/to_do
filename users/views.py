@@ -1,27 +1,25 @@
-from django.contrib import messages
 from django.contrib.auth import get_user_model, logout
-from django.template.context_processors import request
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.views import LoginView
+from django.shortcuts import redirect
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.response import Response
+
 from users.serializers import RegisterUserSerializer
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.shortcuts import render, redirect
-from django.contrib.auth.views import LoginView
-from django.contrib.auth.forms import AuthenticationForm
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser
 
 User = get_user_model()
 
 
-
-class RegisterForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-    class Meta:
-        model = CustomUser
-        fields = ('email', 'password1', 'password2', )
-
 class RegisterUserAPIView(APIView):
+    permission_classes = []
+
+    @swagger_auto_schema(
+        request_body=RegisterUserSerializer,
+        operation_description="Create a post object"
+    )
+
+
     def post(self, request, *args, **kwargs):
         serializer = RegisterUserSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
@@ -30,21 +28,7 @@ class RegisterUserAPIView(APIView):
             user = User(email=email)
             user.set_password(password)
             user.save()
-        return Response({"message": "ПОЛЬЗОВАТЕЛЬ СОЗДАН"})
-
-
-def register_view(request):
-    if request.method == 'POST':
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Регистрация прошла успешно!")
-            return redirect('index')
-        else:
-            print(form.errors)
-    else:
-        form = RegisterForm()
-    return render(request, 'registration/register.html', {'form': form})
+        return Response(True)
 
 
 class CustomLoginView(LoginView):

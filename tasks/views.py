@@ -1,5 +1,4 @@
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from django.shortcuts import redirect
@@ -13,14 +12,21 @@ from .serializers import TaskSerializer
 class TaskListCreateView(generics.ListCreateAPIView):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
-    # permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = []
     renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
     template_name = "pages/index.html"
 
-    def get(self, request, *args, **kwargs):
-        tasks = Task.objects.filter(user=request.user)
-        serializer = self.get_serializer()
-        return Response({'tasks': tasks, 'form': serializer})
+    def get(self, request):
+        if request.user.is_authenticated:
+            # Пользователь залогинен: показываем все его задачи (и приватные, и нет)
+            tasks = Task.objects.filter(user=request.user)
+        else:
+            # Не залогинен: показываем только публичные задачи
+            tasks = Task.objects.filter(is_private=False)
+
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data)
+
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -38,10 +44,16 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
     template_name = "pages/task_detail.html"
 
-    def get(self, request, *args, **kwargs):
-        task = self.get_object()
-        serializer = self.get_serializer(task)
-        return Response({'task': task, 'form': serializer})
+    def get(self, request):
+        if request.user.is_authenticated:
+            # Пользователь залогинен: показываем все его задачи (и приватные, и нет)
+            tasks = Task.objects.filter(user=request.user)
+        else:
+            # Не залогинен: показываем только публичные задачи
+            tasks = Task.objects.filter(is_private=False)
+
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
         task = self.get_object()
