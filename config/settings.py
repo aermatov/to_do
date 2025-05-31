@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'django_filters',
+    'drf_yasg',
 
     #apps
     'tasks',
@@ -70,7 +72,11 @@ TEMPLATES = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+
+'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 
 }
 
@@ -131,10 +137,16 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = BASE_DIR/ 'media/'
 # STATIC_ROOT = BASE_DIR / 'static/'
+# STATICFILES_DIRS = [
+#     BASE_DIR, "static/",
+#     "/home/alymkul/PycharmProjects/pythonProject/to_do/to_do/static/",
+# ]
 STATICFILES_DIRS = [
-    BASE_DIR, "static/",
-    "/home/alymkul/PycharmProjects/pythonProject/to_do/to_do/static/",
+    BASE_DIR / "static",
+    BASE_DIR / "to_do" / "static",
+    Path("/Users/elviramambetova/Desktop/chyngyz/to_do/to_do/to_do/static"),
 ]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -181,3 +193,15 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer {JWT}": {
+            "name": "Authorization",
+            "type": "apiKey",
+            "in": "header",
+        }
+    },
+    "USE_SESSION_AUTH": False,
+}
+
+FORCE_SCRIPT_NAME = "/"
