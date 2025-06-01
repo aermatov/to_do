@@ -1,21 +1,41 @@
 {% extends 'tasks/base.html' %}
 
+{% block title %}Список задач{% endblock %}
+
 {% block content %}
 <section>
     <header class="major">
         <h2>Список задач</h2>
     </header>
     {% if tasks %}
-        <ul class="task-list">
-            {% for task in tasks %}
-                <li>
-                    <strong>{{ task.title }}</strong><br>
-                    {{ task.description }}
-                </li>
-            {% endfor %}
-        </ul>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Описание</th>
+                        <th>Дата создания</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td><a href="{% url 'task-detail' task.id %}">{{ task.title }}</a></td>
+                        <td>{{ task.description|truncatechars:50|default:"-" }}</td>
+                        <td>{{ task.created|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'task-detail' task.id %}" class="button small icon solid fa-edit">Редактировать</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {% else %}
-        <p>Нет доступных задач.</p>
+        <div class="box">
+            <p>Нет доступных задач. <a href="{% url 'task-list-create' %}">Создайте первую задачу!</a></p>
+        </div>
     {% endif %}
 </section>
 {% endblock %}

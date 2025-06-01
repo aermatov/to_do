@@ -1,41 +1,60 @@
 {% load static %}
-
 <!DOCTYPE HTML>
-<html>
+<html lang="ru">
 <head>
-    <title>ToDo App</title>
+    <title>{% block title %}ToDo Приложение{% endblock %}</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+    <meta name="description" content="Приложение для управления задачами" />
+    <link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
+    <noscript><link rel="stylesheet" href="{% static 'assets/css/noscript.css' %}" /></noscript>
 </head>
 <body class="is-preload">
+
+    <!-- Обёртка -->
     <div id="wrapper">
 
-        <!-- Header -->
-        <header id="header">
-            <h1><a href="{% url 'task-list-create' %}">ToDo List</a></h1>
-            <nav>
-                <ul>
-                    {% if user.is_authenticated %}
-                        <li><a href="{% url 'logout' %}">Выход</a></li>
-                    {% else %}
-                        <li><a href="{% url 'login' %}">Вход</a></li>
-                        <li><a href="{% url 'register' %}">Регистрация</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </header>
-
-        <!-- Main -->
+        <!-- Основной контент -->
         <div id="main">
-            {% block content %}{% endblock %}
+            <div class="inner">
+
+                <!-- Шапка -->
+               <header id="header">
+    <a href="{% url 'task-list-create' %}" class="logo"><strong>ToDo</strong> - Управление задачами</a>
+    <ul class="icons">
+        {% if user.is_authenticated %}
+            <li><span class="label">Добро пожаловать, {{ user.username }}!</span></li>
+            <li>
+                <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="icon-button" style="background: none; border: none; cursor: pointer;">
+                        <i class="icon solid fa-sign-out-alt" title="Выйти"></i>
+                        <span class="label">Выход</span>
+                    </button>
+                </form>
+            </li>
+        {% else %}
+            <li><a href="{% url 'login' %}" class="icon solid fa-sign-in-alt" title="Войти"><span class="label">Вход</span></a></li>
+            <li><a href="{% url 'register' %}" class="icon solid fa-user-plus" title="Регистрация"><span class="label">Регистрация</span></a></li>
+        {% endif %}
+    </ul>
+</header>
+
+                <!-- Блок контента -->
+                <section>
+                    {% block content %}{% endblock %}
+                </section>
+
+            </div>
         </div>
 
-        <!-- Footer -->
-        <footer id="footer">
-            <p>&copy; 2025 ToDo App.</p>
-        </footer>
-
     </div>
+
+    <!-- Скрипты -->
+    <script src="{% static 'assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'assets/js/browser.min.js' %}"></script>
+    <script src="{% static 'assets/js/breakpoints.min.js' %}"></script>
+    <script src="{% static 'assets/js/util.js' %}"></script>
+    <script src="{% static 'assets/js/main.js' %}"></script>
 </body>
 </html>

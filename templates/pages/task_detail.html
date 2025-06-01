@@ -1,38 +1,65 @@
 {% extends "tasks/base.html" %}
 {% load static %}
 
+{% block title %}Редактирование - {{ task.title }}{% endblock %}
+
 {% block content %}
 <section>
     <header class="major">
-        <h2>Редактировать задачу</h2>
+        <h2>Редактирование задачи</h2>
+        <p>{{ task.title }}</p>
     </header>
 
     <form method="post" class="alt">
         {% csrf_token %}
-        {{ form.as_p }}
-        <ul class="actions">
-            <li><button type="submit" class="button big">Сохранить</button></li>
-        </ul>
+        <div class="row gtr-uniform">
+            {% for field in form %}
+                {% if field.name != 'is_private' %}
+                <div class="col-12">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.help_text %}
+                    <small class="helptext">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="col-12">
+                <label for="{{ form.is_private.id_for_label }}" class="checkbox-label">
+                    {{ form.is_private }}
+                    <span>{{ form.is_private.label }}</span>
+                </label>
+            </div>
+
+            <div class="col-12">
+                <ul class="actions">
+                    <li><button type="submit" class="button primary icon solid fa-save">Сохранить изменения</button></li>
+                </ul>
+            </div>
+        </div>
     </form>
 
     <form method="post" style="margin-top: 1.5em;">
         {% csrf_token %}
         <input type="hidden" name="_method" value="delete">
         <ul class="actions">
-            <li><button type="submit" class="button big red">Удалить задачу</button></li>
+            <li><button type="submit" class="button icon solid fa-trash">Удалить задачу</button></li>
         </ul>
     </form>
 
     {% if errors %}
-    <ul style="color: red;">
-        {% for field, error_list in errors.items %}
-            {% for error in error_list %}
-                <li>{{ error }}</li>
+    <div class="alert error">
+        <ul>
+            {% for field, error_list in errors.items %}
+                {% for error in error_list %}
+                    <li>{{ error }}</li>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-    </ul>
+        </ul>
+    </div>
     {% endif %}
 
-    <p><a href="{% url 'task-list-create' %}">← Назад к списку</a></p>
+    <p><a href="{% url 'task-list-create' %}" class="button icon solid fa-arrow-left">Вернуться к списку</a></p>
 </section>
 {% endblock %}
