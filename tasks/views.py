@@ -4,9 +4,15 @@ from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from django.shortcuts import redirect
 from django.core.serializers import serialize
 from django.shortcuts import render
+from django.contrib import messages
 
+from .forms import TaskForm
 from .models import Task
 from .serializers import TaskSerializer
+
+
+def index(request):
+    return render(request, 'pages/index.html')
 
 
 class TaskListCreateView(generics.ListCreateAPIView):
@@ -27,14 +33,24 @@ class TaskListCreateView(generics.ListCreateAPIView):
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
+    def task_create(request):
+        if request.method == 'POST':
+            form = TaskForm(request.POST)
+            if form.is_valid():
+                task = form.save(commit=False)
+                task.user = request.user
+                task.save()
+                messages.success(request, 'Задача успешно создана!')
+                return redirect('task-list-create')
+            else:
+                messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+        else:
+            form = TaskForm()
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return redirect('task-list-create')
-        tasks = Task.objects.filter(user=request.user)
-        return Response({'tasks': tasks, 'form': serializer})
+        return render(request, 'pages/index.html', {
+            'form': form,
+            'tasks': Task.objects.filter(user=request.user)
+        })
 
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -65,3 +81,17 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
             serializer.save()
             return redirect("task-list-create")
         return Response({'task': task, 'form': serializer})
+
+
+from django.views.generic import TemplateView
+
+
+class HomeView(TemplateView):
+    template_name = 'index.html'  # Указываем ваш существующий шаблон
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Главная страница'
+        if self.request.user.is_authenticated:
+            context['user'] = self.request.user
+        return context

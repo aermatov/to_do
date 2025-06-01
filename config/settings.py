@@ -1,6 +1,7 @@
 from datetime import timedelta
 from pathlib import Path
 from decouple import config
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -49,15 +50,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 AUTH_USER_MODEL = "users.CustomUser"
-LOGIN_REDIRECT_URL = 'index'
+LOGIN_REDIRECT_URL = 'task-list-create'
 LOGOUT_REDIRECT_URL = 'login'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR/ 'templates'
-        ],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -132,20 +131,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
-MEDIA_ROOT = BASE_DIR/ 'media/'
-# STATIC_ROOT = BASE_DIR / 'static/'
-# STATICFILES_DIRS = [
-#     BASE_DIR, "static/",
-#     "/home/alymkul/PycharmProjects/pythonProject/to_do/to_do/static/",
-# ]
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-    BASE_DIR / "to_do" / "static",
-    Path("/Users/elviramambetova/Desktop/chyngyz/to_do/to_do/to_do/static"),
-]
+# MEDIA_ROOT = BASE_DIR/ 'media/'
+
+
+
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 
 # Default primary key field type
