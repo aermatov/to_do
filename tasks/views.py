@@ -1,10 +1,10 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.core.serializers import serialize
-from django.shortcuts import render
 from django.contrib import messages
+from django.views.generic import TemplateView
 
 from .forms import TaskForm
 from .models import Task
@@ -23,71 +23,96 @@ class TaskListCreateView(generics.ListCreateAPIView):
     template_name = "pages/index.html"
 
     def get(self, request):
+        # Получаем задачи в зависимости от авторизации
         if request.user.is_authenticated:
-            # Пользователь залогинен: показываем все его задачи (и приватные, и нет)
             tasks = Task.objects.filter(user=request.user)
         else:
-            # Не залогинен: показываем только публичные задачи
             tasks = Task.objects.filter(is_private=False)
 
-        serializer = TaskSerializer(tasks, many=True)
-        return Response(serializer.data)
+        # Создаем форму для отображения
+        form = TaskForm()
 
-    def task_create(request):
-        if request.method == 'POST':
-            form = TaskForm(request.POST)
-            if form.is_valid():
-                task = form.save(commit=False)
-                task.user = request.user
-                task.save()
-                messages.success(request, 'Задача успешно создана!')
-                return redirect('task-list-create')
-            else:
-                messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
-        else:
-            form = TaskForm()
+        # Если это AJAX запрос, возвращаем JSON
+        if request.headers.get('Accept') == 'application/json':
+            serializer = TaskSerializer(tasks, many=True)
+            return Response(serializer.data)
 
-        return render(request, 'pages/index.html', {
+        # Иначе возвращаем HTML с контекстом
+        return Response({
+            'tasks': tasks,
             'form': form,
-            'tasks': Task.objects.filter(user=request.user)
+            'user': request.user
+        })
+
+    def post(self, request):
+        """Обработка создания новой задачи"""
+        form = TaskForm(request.POST)
+
+        if form.is_valid():
+            task = form.save(commit=False)
+            # Устанавливаем пользователя, если он авторизован
+            if request.user.is_authenticated:
+                task.user = request.user
+            task.save()
+            messages.success(request, 'Задача успешно создана!')
+            return redirect('task-list-create')
+        else:
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+
+        # Если форма невалидна, показываем ошибки
+        if request.user.is_authenticated:
+            tasks = Task.objects.filter(user=request.user)
+        else:
+            tasks = Task.objects.filter(is_private=False)
+
+        return Response({
+            'tasks': tasks,
+            'form': form,
+            'user': request.user,
+            'errors': form.errors
         })
 
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
-    # permission_classes = [IsAuthenticatedOrReadOnly]
     renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
     template_name = "pages/task_detail.html"
 
-    def get(self, request):
-        if request.user.is_authenticated:
-            # Пользователь залогинен: показываем все его задачи (и приватные, и нет)
-            tasks = Task.objects.filter(user=request.user)
-        else:
-            # Не залогинен: показываем только публичные задачи
-            tasks = Task.objects.filter(is_private=False)
+    def get(self, request, *args, **kwargs):
+        task = self.get_object()
+        form = TaskForm(instance=task)
 
-        serializer = TaskSerializer(tasks, many=True)
-        return Response(serializer.data)
+        return Response({
+            'task': task,
+            'form': form
+        })
 
     def post(self, request, *args, **kwargs):
         task = self.get_object()
+
+        # Проверяем кнопку удаления
         if "delete" in request.POST:
             task.delete()
+            messages.success(request, 'Задача удалена!')
             return redirect("task-list-create")
-        serializer = self.get_serializer(task, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
+
+        # Обновляем задачу
+        form = TaskForm(request.POST, instance=task)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Задача обновлена!')
             return redirect("task-list-create")
-        return Response({'task': task, 'form': serializer})
 
-
-from django.views.generic import TemplateView
+        return Response({
+            'task': task,
+            'form': form,
+            'errors': form.errors
+        })
 
 
 class HomeView(TemplateView):
-    template_name = 'index.html'  # Указываем ваш существующий шаблон
+    template_name = 'index.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

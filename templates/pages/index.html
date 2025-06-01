@@ -4,6 +4,15 @@
 {% block title %}Главная - Мои задачи{% endblock %}
 
 {% block content %}
+<!-- Отображение сообщений -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
 <!-- Баннер с формой создания задачи -->
 <section id="banner">
     <div class="content">
@@ -12,26 +21,45 @@
             <p>Добавьте новую задачу</p>
         </header>
 
-        <form method="post" class="alt">
+        <form method="post" action="{% url 'task-list-create' %}" class="alt">
             {% csrf_token %}
             <div class="row gtr-uniform">
-                {% for field in form %}
-                    {% if field.name != 'is_private' %}
-                    <div class="col-12">
-                        {{ field.label_tag }}
-                        {{ field }}
-                        {% if field.help_text %}
-                        <small class="helptext">{{ field.help_text }}</small>
-                        {% endif %}
-                    </div>
+                <div class="col-12">
+                    <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <div class="form-errors">
+                            {% for error in form.title.errors %}
+                                <small class="error">{{ error }}</small>
+                            {% endfor %}
+                        </div>
                     {% endif %}
-                {% endfor %}
+                </div>
+
+                <div class="col-12">
+                    <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="form-errors">
+                            {% for error in form.description.errors %}
+                                <small class="error">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
 
                 <div class="col-12">
                     <label for="{{ form.is_private.id_for_label }}" class="checkbox-label">
                         {{ form.is_private }}
                         <span>{{ form.is_private.label }}</span>
                     </label>
+                    {% if form.is_private.errors %}
+                        <div class="form-errors">
+                            {% for error in form.is_private.errors %}
+                                <small class="error">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="col-12">
@@ -47,7 +75,7 @@
             <ul>
                 {% for field, error_list in errors.items %}
                     {% for error in error_list %}
-                        <li>{{ error }}</li>
+                        <li>{{ field }}: {{ error }}</li>
                     {% endfor %}
                 {% endfor %}
             </ul>
@@ -77,19 +105,13 @@
                     {% else %}
                     <span class="icon solid fa-globe" title="Публичная задача"></span>
                     {% endif %}
-                    {% if task.completed %}
+                    {% if task.is_completed %}
                     <span class="icon solid fa-check" title="Выполнено"></span>
                     {% endif %}
                     <small>Создано: {{ task.created|date:"d.m.Y H:i" }}</small>
                 </div>
                 <ul class="actions">
-                    <li><a href="{% url 'task-update' task.id %}" class="button small icon solid fa-edit">Редактировать</a></li>
-                    <li>
-                        <form action="{% url 'task-delete' task.id %}" method="post" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="button small icon solid fa-trash" onclick="return confirm('Удалить задачу?')">Удалить</button>
-                        </form>
-                    </li>
+                    <li><a href="{% url 'task-detail' task.id %}" class="button small icon solid fa-edit">Редактировать</a></li>
                 </ul>
             </div>
         </article>
