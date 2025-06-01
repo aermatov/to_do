@@ -1,30 +1,33 @@
 from django import forms
-from django.utils import timezone
 from .models import Task
 
 
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'is_private', 'description', 'is_completed', 'user']
+        fields = ['title', 'description', 'is_private']  # Убрали 'user' и 'is_completed'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make the user field optional in the form
-        self.fields['user'].required = False
-        # Customize the is_completed field to be more user-friendly
-        self.fields['is_completed'].widget = forms.DateTimeInput(
+        # Настраиваем виджеты
+        self.fields['description'].widget = forms.Textarea(
             attrs={
-                'type': 'datetime-local',
-                'class': 'form-control'
+                'rows': 4,
+                'class': 'form-control',
+                'placeholder': 'Описание задачи (необязательно)'
             }
         )
-        self.fields['description'].widget = forms.Textarea(attrs={'rows': 4})
+        self.fields['title'].widget = forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Название задачи'
+            }
+        )
+        self.fields['is_private'].widget = forms.CheckboxInput(
+            attrs={
+                'class': 'form-check-input'
+            }
+        )
 
-    def clean_is_completed(self):
-        is_completed = self.cleaned_data.get('is_completed')
-        # If the task is being marked as completed but no date was provided,
-        # automatically set it to now
-        if is_completed and not self.cleaned_data['is_completed']:
-            return timezone.now()
-        return is_completed
+        # Делаем описание необязательным
+        self.fields['description'].required = False
